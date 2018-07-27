@@ -23,8 +23,8 @@ struct SEND_DATA_STRUCTURE {
 SEND_DATA_STRUCTURE mydata;
 
 void setup_WDT() {
-  Serial.println("setup WDT");
-  Serial.flush();
+  //  Serial.println("setup WDT");
+  //  Serial.flush();
   cli();
 
   wdt_reset(); // reset the WDT timer
@@ -41,8 +41,8 @@ void setup_WDT() {
 
 void setup_sleep() {
   // prepare Deep-sleep Mode
-  Serial.println("setup sleep");
-  Serial.flush();
+  //  Serial.println("setup sleep");
+  //  Serial.flush();
 
   // transcieverul off
   PRR1 |= (1 << PRTRX24);
@@ -67,9 +67,9 @@ void setup_sleep() {
 }
 
 ISR(WDT_vect) {
-  Serial.print("Watchdog Interrupt ");
-  Serial.println(counter, DEC);
-  Serial.flush();
+  //  Serial.print("Watchdog Interrupt ");
+  //  Serial.println(counter, DEC);
+  //  Serial.flush();
 
   counter++;
   if (counter == 2) {
@@ -88,7 +88,7 @@ ISR(WDT_vect) {
 void setup() {
   counter = 0;
   colect_data = false;
-  Serial.begin(9600);
+  //  Serial.begin(9600);
   //  pinMode(LED_BUILTIN, OUTPUT);
   //  digitalWrite(LED_BUILTIN, LOW);
 
@@ -103,30 +103,31 @@ void setup() {
 
 void loop() {
 
-  Serial.println("am inceput");
+  //  Serial.println("am inceput");
 
   //  digitalWrite(LED_BUILTIN, HIGH);
 
   if (colect_data == true) {
-    
-    Serial.println("initializare transciever");
+
+    //    Serial.println("initializare transciever");
     ST.begin(details(mydata));
 
-    Serial.println("acum colectam date si le trimitem");
-    Serial.flush();
+    //    Serial.println("acum colectam date si le trimitem");
+    //    Serial.flush();
+    _delay_ms(500);
 
     mydata.data++;
 
-    Serial.println("incerc");
-    Serial.flush();
+    //    Serial.println("incerc");
+    //    Serial.flush();
     //send the data
-    ST.sendData();    
+    ST.sendData();
     _delay_ms(1000);
 
     colect_data = false;
 
-    Serial.println("am trimis datele");
-    Serial.flush();
+    //    Serial.println("am trimis datele");
+    //    Serial.flush();
   }
 
   //  digitalWrite(LED_BUILTIN, LOW);
@@ -138,6 +139,6 @@ void loop() {
   setup_sleep();
 
 
-  Serial.println("am terminat");
-  Serial.println();
+  //  Serial.println("am terminat");
+  //  Serial.println();
 }
