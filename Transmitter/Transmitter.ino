@@ -7,6 +7,8 @@
 #include <Wire.h>
 
 #define SEALEVELPRESSURE_HPA (1013.25)
+//#define BME680_VCC 8
+//#define BME680_GND 9
 
 Adafruit_BME680 bme; // I2C
 
@@ -68,13 +70,16 @@ void setup_sleep() {
   Serial.println("setup sleep");
   Serial.flush();
 
+  Serial.println("sleeping...");
+  Serial.flush();
+
   // transcieverul off
   PRR1 |= (1 << PRTRX24);
 
   //  Shut down ADC before invoking the PRR bit for it
   ADCSRA = 0;
 
-  // Power reduction registers (usart0 TODO)
+  // Power reduction registers
   PRR0 |= (1 << PRTWI) | (1 << PRTIM2) | (1 << PRTIM0) | (1 << PRPGA)
           | (1 << PRTIM1) | (1 << PRSPI) | (1 << PRADC)  | (1 << PRUSART0);
 
@@ -85,6 +90,8 @@ void setup_sleep() {
 
   // Sleep Mode Control Register (sleep enable & power down)
   SMCR = (1 << SE) | (0 << SM0) | (1 << SM1) | (0 << SM2);
+
+  // comand for sleep
   sleep_cpu();
 }
 
@@ -106,7 +113,7 @@ ISR(WDT_vect) {
     // reenable ADC
     ADCSRA = (1 << ADEN);
 
-    //restor PRR
+    //restore PRR
     PRR0 = 0;
     PRR1 = 0;
 
@@ -121,6 +128,11 @@ void setup() {
   //  pinMode(LED_BUILTIN, OUTPUT);
   //  digitalWrite(LED_BUILTIN, LOW);
 
+  // for bme690
+  //  pinMode(BME680_VCC, OUTPUT);
+  //  pinMode(BME680_GND, OUTPUT);
+  //  digitalWrite(BME680_GND, LOW);
+
   //start the library, pass in the data details
   ST.begin(details(mydata));
 
@@ -129,60 +141,91 @@ void setup() {
 
 }
 
+void power_on_sensors() {
+  //  digitalWrite(BME680_VCC, HIGH);
+}
+
+
+void power_off_sensors() {
+  //  digitalWrite(BME680_VCC, LOW);
+}
+
+void print_sensor_data() {
+
+  // for bme680
+  Serial.println("***");
+  Serial.print("Temperature = ");
+  Serial.print(bme.temperature);
+  Serial.println(" °C");
+
+  Serial.print("Pressure = ");
+  Serial.print(bme.pressure / 100.0);
+  Serial.println(" hPa");
+
+  Serial.print("Humidity = ");
+  Serial.print(bme.humidity);
+  Serial.println(" %");
+
+  Serial.print("Gas = ");
+  Serial.print(bme.gas_resistance / 1000.0);
+  Serial.println(" KOhms");
+
+  Serial.print("Approx. Altitude = ");
+  Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
+  Serial.println(" m");
+
+  Serial.println("***");
+  //    Serial.println();
+}
+
+void colect_sensors_data() {
+  // colect bme680 data
+  setup_bme680();
+  if (! bme.performReading()) {
+    Serial.println("Failed to perform reading :(");
+    return;
+  }
+}
+
+void update_struct() {
+  mydata.data++;
+  mydata.temperature = bme.temperature;
+  mydata.pressure = bme.pressure / 100.0;
+  mydata.air_humidity = bme.humidity;
+  mydata.gas = bme.gas_resistance / 1000.0;
+  mydata.altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
+}
+
 void loop() {
 
-  Serial.println("****************");
-  Serial.println("am inceput");
+  Serial.println("************************************************");
+  Serial.println("start");
 
   //  digitalWrite(LED_BUILTIN, HIGH);
 
   if (colect_data == true) {
 
-    Serial.println("initializare transciever");
+    // power on sensors
+    //    power_on_sensors();
+
+    // transciever initialization
+    Serial.println("transciever initialization");
     ST.begin(details(mydata));
 
-    Serial.println("acum colectam date si le trimitem");
+    Serial.println("colect data from sensors");
     Serial.flush();
     _delay_ms(1);
 
     //colectam date
-    setup_bme680();
-    if (! bme.performReading()) {
-      Serial.println("Failed to perform reading :(");
-      return;
-    }
-    Serial.println("***");
-    Serial.print("Temperature = ");
-    Serial.print(bme.temperature);
-    Serial.println(" °C");
+    colect_sensors_data();
 
-    Serial.print("Pressure = ");
-    Serial.print(bme.pressure / 100.0);
-    Serial.println(" hPa");
+    // print sensors data
+    print_sensor_data();
 
-    Serial.print("Humidity = ");
-    Serial.print(bme.humidity);
-    Serial.println(" %");
+    // update structure with new data from sensors
+    update_struct();
 
-    Serial.print("Gas = ");
-    Serial.print(bme.gas_resistance / 1000.0);
-    Serial.println(" KOhms");
-
-    Serial.print("Approx. Altitude = ");
-    Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
-    Serial.println(" m");
-
-    Serial.println("***");
-    //    Serial.println();
-
-    mydata.data++;
-    mydata.temperature = bme.temperature;
-    mydata.pressure = bme.pressure / 100.0;
-    mydata.air_humidity = bme.humidity;
-    mydata.gas = bme.gas_resistance / 1000.0;
-    mydata.altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
-
-    Serial.println("incerc");
+    Serial.println("sending data...");
     Serial.flush();
 
     //send the data
@@ -191,11 +234,14 @@ void loop() {
 
     colect_data = false;
 
-    Serial.println("am trimis datele");
+    Serial.println("done! data sent");
     Serial.flush();
   }
 
-  digitalWrite(LED_BUILTIN, LOW);
+  //  digitalWrite(LED_BUILTIN, LOW);
+
+  // power off sensors
+  //  power_off_sensors();
 
   // prepare watchdog
   setup_WDT();
@@ -203,8 +249,7 @@ void loop() {
   // prepare sleep
   setup_sleep();
 
-
-  Serial.println("am terminat");
-  Serial.println("****************");
+  Serial.println("finish");
+  Serial.println("************************************************");
   Serial.println();
 }
