@@ -1,17 +1,16 @@
+/* This is an example for SparrowVSleep library.
+    You only need to call SparrowV_SleepInit function.
+    The funciton has 2 params.
+    1st param: integer > 1 second (represent time in secons, how long board will sleep)
+    2nd param: bool (true represent with data retention, false with no data retention)
+               In case of no data retention the board can sleep max 8 secons and it will
+    reboot after time will end.
+*/
+
 #include <SparrowVsleep.h>
 
-int ok = 0;
-int counter = 0;
-
 void setup() {
-  counter++;
-  Serial.begin(9600);Serial. println();
-
-  Serial.print("counter: ");
-  Serial.println(counter);
-  Serial.print("OK: ");
-  Serial.println(ok);
-  
+  Serial.begin(9600);
 }
 
 void loop() {
@@ -20,10 +19,9 @@ void loop() {
   Serial.println("Start");
   Serial.flush();
 
-  if (ok == 0) {
-    SparrowV_SleepInit(53, true);
-    ok = 1;
-  }
+  //sleep for 25 seconds with data retention
+  SparrowV_SleepInit(25, true);
+
   Serial.println("Stop");
   Serial. println("****************************");
   Serial. println();
