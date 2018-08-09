@@ -21,10 +21,9 @@ void loop() {
   Serial.flush();
 
   if (ok == 0) {
-    SparrowV_SleepInit(35, true);
+    SparrowV_SleepInit(53, true);
     ok = 1;
   }
-  setup();
   Serial.println("Stop");
   Serial. println("****************************");
   Serial. println();
