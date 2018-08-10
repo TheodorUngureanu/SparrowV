@@ -1,10 +1,10 @@
 /* This is an example for SparrowVSleep library.
-    You only need to call SparrowV_SleepInit function.
+    You need to call SparrowV_SleepInit function.
     The funciton has 2 params.
-    1st param: integer > 1 second (represent time in secons, how long board will sleep)
-    2nd param: bool (true represent with data retention, false with no data retention)
+    1st param: integer (> 1 second, greater than 1 second) (represent time in seconds, how long the board will sleep)
+    2nd param: bool (true - with data retention, false - with no data retention)
                In case of no data retention the board can sleep max 8 secons and it will
-    reboot after time will end.
+    reboot after time end.
 */
 
 #include <SparrowVsleep.h>
