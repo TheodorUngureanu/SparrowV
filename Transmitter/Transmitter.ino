@@ -5,9 +5,10 @@
 #include <Adafruit_Sensor.h>
 #include "Adafruit_BME680.h"
 #include <Wire.h>
+#include <SparrowVsleep.h>
 
 #define SEALEVELPRESSURE_HPA (1013.25)
-//#define BME680_VCC 8
+#define BME680_VCC 8
 //#define BME680_GND 9
 
 Adafruit_BME680 bme; // I2C
@@ -48,78 +49,6 @@ void setup_bme680() {
   bme.setGasHeater(320, 150); // 320*C for 150 ms
 }
 
-void setup_WDT() {
-  Serial.println("setup WDT");
-  Serial.flush();
-  cli();
-
-  wdt_reset(); // reset the WDT timer
-  MCUSR &= ~(1 << WDRF); // Clear the reset flag. (because the data sheet said to)
-
-  // Enter in configuration mode
-  WDTCSR = (1 << WDCE) | (1 << WDE);
-
-  // Setup Watchdog for interrupt and not reset, and a approximately 8s timeout
-  WDTCSR = (1 << WDIE) | (1 << WDP3) | (1 << WDP0);
-
-  sei();
-}
-
-void setup_sleep() {
-  // prepare Deep-sleep Mode
-  Serial.println("setup sleep");
-  Serial.flush();
-
-  Serial.println("sleeping...");
-  Serial.flush();
-
-  // transcieverul off
-  PRR1 |= (1 << PRTRX24);
-
-  //  Shut down ADC before invoking the PRR bit for it
-  ADCSRA = 0;
-
-  // Power reduction registers
-  PRR0 |= (1 << PRTWI) | (1 << PRTIM2) | (1 << PRTIM0) | (1 << PRPGA)
-          | (1 << PRTIM1) | (1 << PRSPI) | (1 << PRADC)  | (1 << PRUSART0);
-
-  PRR1 |= (1 << PRTIM5) | (1 << PRTIM4) | (1 << PRTIM3) | (1 << PRUSART1) | (1 << PRUSART1);
-
-  // uncoment for no data renention
-  //  PRR2 |= (1 << PRRAM3) | (1 << PRRAM2) | (1 << PRRAM1) | (1 << PRRAM0);
-
-  // Sleep Mode Control Register (sleep enable & power down)
-  SMCR = (1 << SE) | (0 << SM0) | (1 << SM1) | (0 << SM2);
-
-  // comand for sleep
-  sleep_cpu();
-}
-
-ISR(WDT_vect) {
-  Serial.print("Watchdog Interrupt ");
-  Serial.println(counter, DEC);
-  Serial.flush();
-
-  wdt_disable();
-
-  counter++;
-  if (counter == 1) {
-    counter = 0;
-    colect_data = true;
-
-    // reenable the transciever
-    PRR1 &= ~(1 << PRTRX24);
-
-    // reenable ADC
-    ADCSRA = (1 << ADEN);
-
-    //restore PRR
-    PRR0 = 0;
-    PRR1 = 0;
-
-  }
-}
-
 void setup() {
   counter = 0;
   colect_data = false;
@@ -129,7 +58,7 @@ void setup() {
   //  digitalWrite(LED_BUILTIN, LOW);
 
   // for bme690
-  //  pinMode(BME680_VCC, OUTPUT);
+  pinMode(BME680_VCC, OUTPUT);
   //  pinMode(BME680_GND, OUTPUT);
   //  digitalWrite(BME680_GND, LOW);
 
@@ -142,39 +71,60 @@ void setup() {
 }
 
 void power_on_sensors() {
-  //  digitalWrite(BME680_VCC, HIGH);
+  digitalWrite(BME680_VCC, HIGH);
 }
 
 
 void power_off_sensors() {
-  //  digitalWrite(BME680_VCC, LOW);
+  digitalWrite(BME680_VCC, LOW);
+
+  // incercare
+  TWCR &= ~(1 << TWEN);
+  PRR0 &= ~(1 << PRTWI);
+  DDRD &= ~(1 << PD0);
+  DDRD &= ~(1 << PD1);
+
+  //  pinMode(SDA, OUTPUT);
+  //  digitalWrite(SDA, 0);
+  //  pinMode(SCL, OUTPUT);
+  //  digitalWrite(SCL, 0);
+
+
+  //  DDRD |= (1 << PD0);
+  //  DDRD |= (1 << PD1);
+  //  digitalWrite(SDA, 1);
+  //  digitalWrite(SCL, 1);
+  //    pinMode(SDA, INPUT);  // remove internal pullup
+  //    pinMode(SCL, INPUT);  // remove internal pullup
+  //  DDRD &= ~(1 << PD0);
+  //  DDRD &= ~(1 << PD1);
 }
 
 void print_sensor_data() {
 
   // for bme680
-  Serial.println("***");
-  Serial.print("Temperature = ");
+  Serial.println("- - - - - - - - - - - - - - - - -");
+  Serial.print("Temperature:    ");
   Serial.print(bme.temperature);
   Serial.println(" °C");
 
-  Serial.print("Pressure = ");
+  Serial.print("Pressure:       ");
   Serial.print(bme.pressure / 100.0);
   Serial.println(" hPa");
 
-  Serial.print("Humidity = ");
+  Serial.print("Air humidity:   ");
   Serial.print(bme.humidity);
   Serial.println(" %");
 
-  Serial.print("Gas = ");
+  Serial.print("Gas:            ");
   Serial.print(bme.gas_resistance / 1000.0);
   Serial.println(" KOhms");
 
-  Serial.print("Approx. Altitude = ");
+  Serial.print("Altitude:       ");
   Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
   Serial.println(" m");
 
-  Serial.println("***");
+  Serial.println("- - - - - - - - - - - - - - - - -");
   //    Serial.println();
 }
 
@@ -200,54 +150,52 @@ void loop() {
 
   Serial.println("************************************************");
   Serial.println("start");
+  Serial.flush();
 
   //  digitalWrite(LED_BUILTIN, HIGH);
 
-  if (colect_data == true) {
+  // power on sensors
+  power_on_sensors();
 
-    // power on sensors
-    //    power_on_sensors();
+  // transciever initialization
+  Serial.println("transciever initialization");
+  Serial.flush();
+  ST.begin(details(mydata));
 
-    // transciever initialization
-    Serial.println("transciever initialization");
-    ST.begin(details(mydata));
+  Serial.println("colect data from sensors");
+  Serial.flush();
+  _delay_ms(1);
 
-    Serial.println("colect data from sensors");
-    Serial.flush();
-    _delay_ms(1);
+  //colectam date
+  colect_sensors_data();
 
-    //colectam date
-    colect_sensors_data();
+  // print sensors data
+  print_sensor_data();
 
-    // print sensors data
-    print_sensor_data();
+  // update structure with new data from sensors
+  update_struct();
 
-    // update structure with new data from sensors
-    update_struct();
+  Serial.println("sending data...");
+  Serial.flush();
 
-    Serial.println("sending data...");
-    Serial.flush();
+  //send the data
+  ST.sendData();
+  _delay_ms(1000);
 
-    //send the data
-    ST.sendData();
-    _delay_ms(1000);
+  colect_data = false;
 
-    colect_data = false;
-
-    Serial.println("done! data sent");
-    Serial.flush();
-  }
+  Serial.println("done! data sent");
+  Serial.flush();
 
   //  digitalWrite(LED_BUILTIN, LOW);
 
   // power off sensors
-  //  power_off_sensors();
+  power_off_sensors();
 
-  // prepare watchdog
-  setup_WDT();
-
-  // prepare sleep
-  setup_sleep();
+  //sleep
+  Serial.println("going to sleep");
+  Serial.flush();
+  SparrowV_SleepInit(70, true);
 
   Serial.println("finish");
   Serial.println("************************************************");
