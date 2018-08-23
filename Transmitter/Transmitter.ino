@@ -5,13 +5,23 @@
 #include <Adafruit_Sensor.h>
 #include "Adafruit_BME680.h"
 #include <Wire.h>
+#include <ClosedCube_OPT3001.h>
 #include <SparrowVsleep.h>
 
+//bme 680
 #define SEALEVELPRESSURE_HPA (1013.25)
-#define BME680_VCC 8
-//#define BME680_GND 9
-
 Adafruit_BME680 bme; // I2C
+
+//cjmcu
+#define OPT3001_ADDRESS 0x44
+ClosedCube_OPT3001 opt3001;
+OPT3001 result;
+#define cjmcu_vcc A1
+
+//soil humidity
+int SoilHumidity_Pin = A0;
+int Soil_Humidity;
+#define soil_vcc A2
 
 // global variables
 int counter;
@@ -30,6 +40,8 @@ struct SEND_DATA_STRUCTURE {
   int air_humidity;      // air humidity
   int gas;               // gas in air (air cuality)
   int altitude;          // altitude
+  int soil_humidity;     // soil humidity
+  int light;             // light intensity
 };
 
 //give a name to the group of data
@@ -54,87 +66,98 @@ void setup() {
   colect_data = false;
   Serial.begin(9600);
 
-  //  pinMode(LED_BUILTIN, OUTPUT);
-  //  digitalWrite(LED_BUILTIN, LOW);
+  // for soil humidity senzor
+  //  pinMode(SoilHumidity_Pin, INPUT);
 
-  // for bme690
-  pinMode(BME680_VCC, OUTPUT);
-  //  pinMode(BME680_GND, OUTPUT);
-  //  digitalWrite(BME680_GND, LOW);
+  //CJMCU
+  pinMode(cjmcu_vcc, OUTPUT);
+  analogWrite(cjmcu_vcc, 1023);
+  opt3001.begin(OPT3001_ADDRESS);
+  configureSensor();
+
+  //soil humidity
+  pinMode(soil_vcc, OUTPUT);
+  analogWrite(soil_vcc, 1023);
 
   //start the library, pass in the data details
   ST.begin(details(mydata));
 
   mydata.data = 0;
   strcpy(mydata.ana, "TEST");
-
 }
 
-void power_on_sensors() {
-  digitalWrite(BME680_VCC, HIGH);
-}
+void configureSensor() {
+  OPT3001_Config newConfig;
 
+  newConfig.RangeNumber = B1100;
+  newConfig.ConvertionTime = B0;
+  newConfig.Latch = B1;
+  newConfig.ModeOfConversionOperation = B11;
 
-void power_off_sensors() {
-  digitalWrite(BME680_VCC, LOW);
+  OPT3001_ErrorCode errorConfig = opt3001.writeConfig(newConfig);
 
-  // incercare
-  TWCR &= ~(1 << TWEN);
-  PRR0 &= ~(1 << PRTWI);
-  DDRD &= ~(1 << PD0);
-  DDRD &= ~(1 << PD1);
-
-  //  pinMode(SDA, OUTPUT);
-  //  digitalWrite(SDA, 0);
-  //  pinMode(SCL, OUTPUT);
-  //  digitalWrite(SCL, 0);
-
-
-  //  DDRD |= (1 << PD0);
-  //  DDRD |= (1 << PD1);
-  //  digitalWrite(SDA, 1);
-  //  digitalWrite(SCL, 1);
-  //    pinMode(SDA, INPUT);  // remove internal pullup
-  //    pinMode(SCL, INPUT);  // remove internal pullup
-  //  DDRD &= ~(1 << PD0);
-  //  DDRD &= ~(1 << PD1);
+  if (errorConfig != NO_ERROR)
+    Serial.println("OPT3001 configuration");
+  else {
+    OPT3001_Config sensorConfig = opt3001.readConfig();
+  }
 }
 
 void print_sensor_data() {
-
-  // for bme680
   Serial.println("- - - - - - - - - - - - - - - - -");
-  Serial.print("Temperature:    ");
-  Serial.print(bme.temperature);
+  // for bme680
+  Serial.print("Temperature:        ");
+  Serial.print(mydata.temperature);
   Serial.println(" °C");
 
-  Serial.print("Pressure:       ");
-  Serial.print(bme.pressure / 100.0);
+  Serial.print("Pressure:           ");
+  Serial.print(mydata.pressure);
   Serial.println(" hPa");
 
-  Serial.print("Air humidity:   ");
-  Serial.print(bme.humidity);
+  Serial.print("Air humidity:       ");
+  Serial.print(mydata.air_humidity);
   Serial.println(" %");
 
-  Serial.print("Gas:            ");
-  Serial.print(bme.gas_resistance / 1000.0);
+  Serial.print("Gas:                ");
+  Serial.print(mydata.gas);
   Serial.println(" KOhms");
 
-  Serial.print("Altitude:       ");
-  Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
+  Serial.print("Altitude:           ");
+  Serial.print(mydata.altitude);
   Serial.println(" m");
 
+  // for cjmcu luminosity
+  Serial.print("Light:              ");
+  Serial.print(mydata.light);
+  Serial.println(" lux");
+
+  // for soil humidity
+  Serial.print("Soil Humidity:      ");
+  Serial.print(mydata.soil_humidity);
+  Serial.println(" %");
+
   Serial.println("- - - - - - - - - - - - - - - - -");
-  //    Serial.println();
 }
 
 void colect_sensors_data() {
+
+  //reenable ADC
+  ADCSRA = 151;
+
   // colect bme680 data
   setup_bme680();
   if (! bme.performReading()) {
     Serial.println("Failed to perform reading :(");
     return;
   }
+
+  // collect cjmcu data
+  result = opt3001.readResult();
+
+  //collect soil humidity senzor
+  Soil_Humidity = analogRead(SoilHumidity_Pin);
+  Serial.print("SOLU: ");
+  Serial.println(Soil_Humidity);
 }
 
 void update_struct() {
@@ -144,6 +167,22 @@ void update_struct() {
   mydata.air_humidity = bme.humidity;
   mydata.gas = bme.gas_resistance / 1000.0;
   mydata.altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
+  mydata.light = result.lux;
+  mydata.soil_humidity =  map(Soil_Humidity, 1023, 300, 0, 100);
+}
+
+void power_on_sensors() {
+  analogWrite(cjmcu_vcc, 1023);
+  analogWrite(soil_vcc, 1023);
+}
+
+
+void power_off_sensors() {
+  analogWrite(cjmcu_vcc, 0);
+  pinMode(cjmcu_vcc, INPUT);
+  digitalWrite(8, LOW);
+
+  analogWrite(soil_vcc, 0);
 }
 
 void loop() {
@@ -151,8 +190,6 @@ void loop() {
   Serial.println("************************************************");
   Serial.println("start");
   Serial.flush();
-
-  //  digitalWrite(LED_BUILTIN, HIGH);
 
   // power on sensors
   power_on_sensors();
@@ -169,11 +206,11 @@ void loop() {
   //colectam date
   colect_sensors_data();
 
-  // print sensors data
-  print_sensor_data();
-
   // update structure with new data from sensors
   update_struct();
+
+  // print sensors data
+  print_sensor_data();
 
   Serial.println("sending data...");
   Serial.flush();
@@ -187,15 +224,13 @@ void loop() {
   Serial.println("done! data sent");
   Serial.flush();
 
-  //  digitalWrite(LED_BUILTIN, LOW);
-
   // power off sensors
   power_off_sensors();
 
   //sleep
   Serial.println("going to sleep");
   Serial.flush();
-  SparrowV_SleepInit(70, true);
+  SparrowV_SleepInit(10, true);
 
   Serial.println("finish");
   Serial.println("************************************************");
