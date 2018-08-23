@@ -14,7 +14,8 @@ struct RECEIVE_DATA_STRUCTURE {
   int air_humidity;      // air humidity
   int gas;               // gas in air (air cuality)
   int altitude;          // altitude
-
+  int soil_humidity;     // soil humidity
+  int light;             // light intensity
 };
 //give a name to the group of data
 RECEIVE_DATA_STRUCTURE mydata;
@@ -53,30 +54,39 @@ void loop() {
     Serial.println("*******************");
     Serial.print("Frame arrived:  ");
     Serial.println(mydata.data);
-    // de la mine
+
     Serial.print("String test:    ");
     Serial.println(mydata.ana);
     Serial.print("Temperature:    ");
     Serial.print(mydata.temperature);
     Serial.println(" °C");
-    
+
     Serial.print("Pressure:       ");
     Serial.print(mydata.pressure);
     Serial.println(" hPa");
-    
+
     Serial.print("Air humidity:   ");
     Serial.print(mydata.air_humidity);
     Serial.println(" %");
-    
+
     Serial.print("Gas:            ");
     Serial.print(mydata.gas);
     Serial.println(" KOhms");
-    
+
     Serial.print("Altitude:       ");
     Serial.print(mydata.altitude);
     Serial.println(" m");
-    //stop de la mine
-    
+
+    // for cjmcu luminosity
+    Serial.print("Light:          ");
+    Serial.print(mydata.light);
+    Serial.println(" lux");
+
+    // for soil humidity
+    //  Serial.print("Soil Humidity:      ");
+    //  Serial.print(mydata.soil_humidity);
+    //  Serial.println(" %");
+
     Serial.print("lost:           ");
     Serial.println(lost);
     Serial.print("loss:           ");
@@ -84,7 +94,7 @@ void loop() {
     Serial.println("%");
     Serial.println("*******************");
     Serial.println();
-    
+
     old_index = mydata.data;
   }
 
