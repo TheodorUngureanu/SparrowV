@@ -21,7 +21,7 @@ OPT3001 result;
 //soil humidity
 int SoilHumidity_Pin = A0;
 int Soil_Humidity;
-#define soil_vcc A2
+#define soil_vcc 10
 
 // global variables
 int counter;
@@ -77,7 +77,7 @@ void setup() {
 
   //soil humidity
   pinMode(soil_vcc, OUTPUT);
-  analogWrite(soil_vcc, 1023);
+  digitalWrite(soil_vcc, HIGH);
 
   //start the library, pass in the data details
   ST.begin(details(mydata));
@@ -134,13 +134,15 @@ void print_sensor_data() {
   // for soil humidity
   Serial.print("Soil Humidity:      ");
   Serial.print(mydata.soil_humidity);
-  Serial.println(" %");
+  Serial.print(" % ");
+  Serial.print("   (");
+  Serial.print(Soil_Humidity);
+  Serial.println(")");
 
   Serial.println("- - - - - - - - - - - - - - - - -");
 }
 
 void colect_sensors_data() {
-
   //reenable ADC
   ADCSRA = 151;
 
@@ -156,8 +158,6 @@ void colect_sensors_data() {
 
   //collect soil humidity senzor
   Soil_Humidity = analogRead(SoilHumidity_Pin);
-  Serial.print("SOLU: ");
-  Serial.println(Soil_Humidity);
 }
 
 void update_struct() {
@@ -168,21 +168,18 @@ void update_struct() {
   mydata.gas = bme.gas_resistance / 1000.0;
   mydata.altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
   mydata.light = result.lux;
-  mydata.soil_humidity =  map(Soil_Humidity, 1023, 300, 0, 100);
+  mydata.soil_humidity =  map(Soil_Humidity, 1023, 200, 0, 100);
 }
 
 void power_on_sensors() {
   analogWrite(cjmcu_vcc, 1023);
-  analogWrite(soil_vcc, 1023);
+  digitalWrite(soil_vcc, HIGH);
 }
 
 
 void power_off_sensors() {
   analogWrite(cjmcu_vcc, 0);
-  pinMode(cjmcu_vcc, INPUT);
-  digitalWrite(8, LOW);
-
-  analogWrite(soil_vcc, 0);
+  digitalWrite(soil_vcc, LOW);
 }
 
 void loop() {
