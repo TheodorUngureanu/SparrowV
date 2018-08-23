@@ -1,17 +1,49 @@
-Rezolvare probleme din RadioFunctions.h SparrowTransfer.h SparrowTransfer.cpp
+Rezolvare probleme din RadioFunctions.h SparrowTransfer.h SparrowTransfer.cpp :
+
 	*** RadioFunctions.h ***
-	Dupa linie "TRX_STATE = (TRX_STATE & 0xE0) | 0x08;" exista un delay de 1 ms.
+
+	Dupa linia "TRX_STATE = (TRX_STATE & 0xE0) | 0x08;" exista un delay de 1 ms.
 In urma testelor am descoperit ca Watch dog timerul este sensibil la acest tip
 de delay. El prefera _delay_ms.
 
 	*** SparrowTransfer.cpp ***
+
 -   static uint8_t buffer[BYTES_TO_PAYLOAD + 100];
   	rx_buffer = buffer;
 	Am adaugat aceste linii intrucat nimeni nu elibera memoria alocata. Astfel, la
 mai multe treziri din sleep era posibil sa ramanem fara memorie.
+
+*********************************************************************************
+
+	*** Biblioteca de sleep ***
+
+The funciton has 2 params.
+1st param: integer (> 1 second, greater than 1 second) (represent time in seconds, how long the board will sleep)
+2nd param: bool (true - with data retention, false - with no data retention)
+           In case of no data retention the board can sleep max 8 secons and it will
+reboot after time end.
+
+*********************************************************************************
+
+	*** Conectare senzori ***
 
 *** BME 680 ***
 - alimentare la 3v3
 (BME680) SDI -> SDA (Sparrow)
 (BME680) SCK -> SCL (Sparrow)
 (BME680) GND -> GND (Sparrow)
+
+*** Senzor umiditate sol ***
+- alimentare la 3v3
+GND -> GND (Sparrow)
+VCC -> 3v3 (Sparrow)
+A0  -> A0  (Sparrow)
+
+** CJMCU 3001 **
+(senzor de lumina)
+- instalare Biblioteca ClosedCube_OPT3001
+- alimentare la A0 cu analogWrite la 1023
+(CJMCU) GND  -> GND (Sparrow)
+(CJMCU) VCC  -> A1  (Sparrow)
+(CJMCU) SDA  -> SDA (Sparrow)
+(CJMCU) SCL  -> SCL (Sparrow)
