@@ -36,7 +36,7 @@ reboot after time end.
 *** Senzor umiditate sol ***
 - alimentare la 3v3
 GND -> GND (Sparrow)
-VCC -> 3v3 (Sparrow)
+VCC -> D9 (Sparrow)
 A0  -> A0  (Sparrow)
 
 ** CJMCU 3001 **
