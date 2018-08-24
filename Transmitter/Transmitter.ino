@@ -33,7 +33,7 @@ SparrowTransfer ST;
 struct SEND_DATA_STRUCTURE {
   //put your variable definitions here for the data you want to send
   //THIS MUST BE EXACTLY THE SAME ON THE OTHER SPARROW
-  uint16_t data;  // ID
+  uint16_t data;         // ID
   char ana[4];
   int temperature;       // temperature
   int pressure;          // air pressure
@@ -105,6 +105,10 @@ void configureSensor() {
 
 void print_sensor_data() {
   Serial.println("- - - - - - - - - - - - - - - - -");
+  
+  Serial.print("ID:                 ");
+  Serial.println(mydata.data);
+  
   // for bme680
   Serial.print("Temperature:        ");
   Serial.print(mydata.temperature);
@@ -166,6 +170,8 @@ void update_struct() {
   mydata.pressure = bme.pressure / 100.0;
   mydata.air_humidity = bme.humidity;
   mydata.gas = bme.gas_resistance / 1000.0;
+  Serial.print("gas:");
+  Serial.println(bme.gas_resistance);
   mydata.altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
   mydata.light = result.lux;
   mydata.soil_humidity =  map(Soil_Humidity, 1023, 200, 0, 100);
