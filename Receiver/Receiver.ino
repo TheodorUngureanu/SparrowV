@@ -83,9 +83,9 @@ void loop() {
     Serial.println(" lux");
 
     // for soil humidity
-    //  Serial.print("Soil Humidity:      ");
-    //  Serial.print(mydata.soil_humidity);
-    //  Serial.println(" %");
+    Serial.print("Soil Humidity:      ");
+    Serial.print(mydata.soil_humidity);
+    Serial.println(" %");
 
     Serial.print("lost:           ");
     Serial.println(lost);
