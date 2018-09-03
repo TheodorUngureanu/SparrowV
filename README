@@ -28,15 +28,15 @@ reboot after time end.
 	*** Conectare senzori ***
 
 *** BME 680 ***
-- alimentare la 3v3
+- alimentare la 3v3 din Sparrow
 (BME680) SDI -> SDA (Sparrow)
 (BME680) SCK -> SCL (Sparrow)
 (BME680) GND -> GND (Sparrow)
 
 *** Senzor umiditate sol ***
-- alimentare la 3v3
+- alimentare prin D10 cu digitalWrite HIGH
 GND -> GND (Sparrow)
-VCC -> D9 (Sparrow)
+VCC -> D10 (Sparrow)
 A0  -> A0  (Sparrow)
 
 ** CJMCU 3001 **
