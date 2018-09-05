@@ -66,8 +66,8 @@ void setup() {
   colect_data = false;
   Serial.begin(9600);
 
-  // for soil humidity senzor
-  //  pinMode(SoilHumidity_Pin, INPUT);
+  //bme 680
+  setup_bme680();
 
   //CJMCU
   pinMode(cjmcu_vcc, OUTPUT);
@@ -97,7 +97,7 @@ void configureSensor() {
   OPT3001_ErrorCode errorConfig = opt3001.writeConfig(newConfig);
 
   if (errorConfig != NO_ERROR)
-    Serial.println("OPT3001 configuration");
+    Serial.println("OPT3001 configuration error");
   else {
     OPT3001_Config sensorConfig = opt3001.readConfig();
   }
@@ -105,10 +105,10 @@ void configureSensor() {
 
 void print_sensor_data() {
   Serial.println("- - - - - - - - - - - - - - - - -");
-  
+
   Serial.print("ID:                 ");
   Serial.println(mydata.data);
-  
+
   // for bme680
   Serial.print("Temperature:        ");
   Serial.print(mydata.temperature);
@@ -151,7 +151,6 @@ void colect_sensors_data() {
   ADCSRA = 151;
 
   // colect bme680 data
-  setup_bme680();
   if (! bme.performReading()) {
     Serial.println("Failed to perform reading :(");
     return;
@@ -170,8 +169,6 @@ void update_struct() {
   mydata.pressure = bme.pressure / 100.0;
   mydata.air_humidity = bme.humidity;
   mydata.gas = bme.gas_resistance / 1000.0;
-  Serial.print("gas:");
-  Serial.println(bme.gas_resistance);
   mydata.altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
   mydata.light = result.lux;
   mydata.soil_humidity =  map(Soil_Humidity, 1023, 200, 0, 100);
@@ -233,7 +230,7 @@ void loop() {
   //sleep
   Serial.println("going to sleep");
   Serial.flush();
-  SparrowV_SleepInit(10, true);
+  SparrowV_SleepInit(3, true);
 
   Serial.println("finish");
   Serial.println("************************************************");
