@@ -43,6 +43,7 @@ A0  -> A0  (Sparrow)
 (senzor de lumina)
 - instalare Biblioteca ClosedCube_OPT3001
 - alimentare la A0 cu analogWrite la 1023
+- Pentru Sparrow V2 (cel verde) alimentarea se poate face si direct de la 3v3.
 (CJMCU) GND  -> GND (Sparrow)
 (CJMCU) VCC  -> A1  (Sparrow)
 (CJMCU) SDA  -> SDA (Sparrow)
