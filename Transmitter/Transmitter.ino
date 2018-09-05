@@ -20,7 +20,7 @@ OPT3001 result;
 
 //soil humidity
 int SoilHumidity_Pin = A0;
-int Soil_Humidity;
+int Soil_Humidity = 0;
 #define soil_vcc 10
 
 // global variables
@@ -171,7 +171,7 @@ void update_struct() {
   mydata.gas = bme.gas_resistance / 1000.0;
   mydata.altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
   mydata.light = result.lux;
-  mydata.soil_humidity =  map(Soil_Humidity, 1023, 200, 0, 100);
+  mydata.soil_humidity =  map(Soil_Humidity, 1023, 100, 0, 100);
 }
 
 void power_on_sensors() {
@@ -230,7 +230,7 @@ void loop() {
   //sleep
   Serial.println("going to sleep");
   Serial.flush();
-  SparrowV_SleepInit(3, true);
+  SparrowV_SleepInit(10, true);
 
   Serial.println("finish");
   Serial.println("************************************************");
