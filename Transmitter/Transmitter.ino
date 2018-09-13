@@ -11,6 +11,7 @@
 //bme 680
 #define SEALEVELPRESSURE_HPA (1013.25)
 Adafruit_BME680 bme; // I2C
+//bool failed_reading = 0;
 
 //cjmcu
 #define OPT3001_ADDRESS 0x44
@@ -19,7 +20,7 @@ OPT3001 result;
 #define cjmcu_vcc A1
 
 //soil humidity
-int SoilHumidity_Pin = A0;
+int SoilHumidity_Pin = A3;
 int Soil_Humidity = 0;
 #define soil_vcc 10
 
@@ -230,7 +231,7 @@ void loop() {
   //sleep
   Serial.println("going to sleep");
   Serial.flush();
-  SparrowV_SleepInit(10, true);
+  SparrowV_SleepInit(5, true);
 
   Serial.println("finish");
   Serial.println("************************************************");

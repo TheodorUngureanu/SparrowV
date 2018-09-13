@@ -52,44 +52,44 @@ void loop() {
       lost += mydata.data - old_index - 1;
 
     Serial.println("*******************");
-    Serial.print("Frame arrived:  ");
+    Serial.print("Frame arrived:     ");
     Serial.println(mydata.data);
 
-    Serial.print("String test:    ");
+    Serial.print("String test:       ");
     Serial.println(mydata.ana);
-    Serial.print("Temperature:    ");
+    Serial.print("Temperature:       ");
     Serial.print(mydata.temperature);
     Serial.println(" °C");
 
-    Serial.print("Pressure:       ");
+    Serial.print("Pressure:          ");
     Serial.print(mydata.pressure);
     Serial.println(" hPa");
 
-    Serial.print("Air humidity:   ");
+    Serial.print("Air humidity:      ");
     Serial.print(mydata.air_humidity);
     Serial.println(" %");
 
-    Serial.print("Gas:            ");
+    Serial.print("Gas:               ");
     Serial.print(mydata.gas);
     Serial.println(" KOhms");
 
-    Serial.print("Altitude:       ");
+    Serial.print("Altitude:          ");
     Serial.print(mydata.altitude);
     Serial.println(" m");
 
     // for cjmcu luminosity
-    Serial.print("Light:          ");
+    Serial.print("Light:             ");
     Serial.print(mydata.light);
     Serial.println(" lux");
 
     // for soil humidity
-    Serial.print("Soil Humidity:      ");
+    Serial.print("Soil Humidity:     ");
     Serial.print(mydata.soil_humidity);
     Serial.println(" %");
 
-    Serial.print("lost:           ");
+    Serial.print("lost:              ");
     Serial.println(lost);
-    Serial.print("loss:           ");
+    Serial.print("loss:              ");
     Serial.print(lost * 100.0 / (lost + received_index), 3);
     Serial.println("%");
     Serial.println("*******************");
