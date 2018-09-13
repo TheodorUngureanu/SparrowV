@@ -37,7 +37,7 @@ reboot after time end.
 - alimentare prin D10 cu digitalWrite HIGH
 GND -> GND (Sparrow)
 VCC -> D10 (Sparrow)
-A0  -> A0  (Sparrow)
+A0  -> A3  (Sparrow)
 
 ** CJMCU 3001 **
 (senzor de lumina)
