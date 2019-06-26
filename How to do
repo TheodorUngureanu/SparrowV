@@ -1,0 +1,29 @@
+						Sparrow smart-gardening
+
+	    Prima etapa (configurarea Sparrow-ului astfel incat sa consume putina energie
+atunci cand acesta este in sleep)
+
+		*** Configurare WDT ***
+
+	Pentru aceasta de vom folosi de Watchdog Timer. Acesta ne va genera o intrerupere
+la un timp pe care il stabilim noi. In datasheet timpul maxim poate fi de 8 secude.
+Astfel, in unele cazuri cand ne dorim ca timpul sa fie mai mare, va fi nevoie sa
+revenim la codul nostru si cu ajutorul unui software counter sa contorizam numarul
+intreruperilor. Ne dorim folosirea acestui Watchdog Timer intrucat ne dorim ca
+placuta sa fie in sleep in timpul acesta si sa consume cat mai putin energie.
+
+	Inainte de a face configurarile pentru sleep trebuie sa facem configurarile
+pentru acest Watchdog Timer. Pentru a intra in modul de configuratie trebuie sa
+punem bitii WDCE si WDE din registrul WDTCSR pe 1. Abia apoi vom putea alege modul
+si resprectiv timpul. Modurile posibile sunt intrerupere si reset. In modul reset,
+dupa expirarea timpului placuta va primi reset, iar in modul intrerupere va primi
+o intrerupere. Astfel daca ne dorim sa continuam executia codului vom alege modul
+de intrerupere.
+
+		*** Configurare sleep ***
+
+	Setarile ce trebuie facute pentru ca in sleep Sparrow-ul sa consume putin sunt
+urmatoarele: trebuie sa dezactivam trancieverul, te oprim ADC-ul si sa oprim ce
+putem din registrele de power reduction. De mentionat este faptul ca daca ne folosim
+de PRR2 atunci nu vom mai avea data retention (memoria nu va fi salvata si astfel nu
+vom sti unde sa ne intoarcem).

@@ -41,6 +41,7 @@ void setup_sleep() {
   PRR1 |= (1 << PRTIM5) | (1 << PRTIM4) | (1 << PRTIM3) | (1 << PRUSART1);   //(usart1 TODO)
   //  | (1 << PRUSART1);
 
+  // for data retention
   //  PRR2 |= (1 << PRRAM3) | (1 << PRRAM2) | (1 << PRRAM1) | (1 << PRRAM0);
 
   // Sleep Mode Control Register (sleep enable & power down)
@@ -95,5 +96,3 @@ void loop() {
 
   //  Serial.println("am terminat");
 }
-
-
